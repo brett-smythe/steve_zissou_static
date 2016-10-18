@@ -5,7 +5,7 @@ import replace from 'rollup-plugin-replace';
 import uglify from 'rollup-plugin-uglify';
 
 export default {
-  entry: 'src/js/main.js',
+  entry: 'js/main.js',
   dest: 'build/js/main.min.js',
   format: 'iife',
   sourceMap: 'inline',

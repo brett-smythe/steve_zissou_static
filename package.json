@@ -1,0 +1,35 @@
+{
+  "name": "steve_zissou_static",
+  "version": "0.0.1",
+  "description": "static files for steve_zissou service",
+  "main": "build/js/main.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brett-smythe/steve_zissou_static.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brett-smythe/steve_zissou_static/issues"
+  },
+  "homepage": "https://github.com/brett-smythe/steve_zissou_static#readme",
+  "devDependencies": {
+    "babel-preset-es2015-rollup": "^1.2.0",
+    "rollup": "^0.36.3",
+    "rollup-plugin-babel": "^2.6.1",
+    "rollup-plugin-commonjs": "^5.0.5",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-replace": "^1.1.1",
+    "rollup-plugin-uglify": "^1.0.1"
+  },
+  "dependencies": {
+    "d3": "^4.2.7",
+    "debug": "^2.2.0",
+    "expand": "^0.4.3",
+    "moment": "^2.15.1",
+    "pikaday": "^1.4.0"
+  }
+}

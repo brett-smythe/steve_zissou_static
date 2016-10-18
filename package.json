@@ -26,6 +26,7 @@
     "rollup-plugin-uglify": "^1.0.1"
   },
   "dependencies": {
+    "bootstrap": "^3.3.7",
     "d3": "^4.2.7",
     "debug": "^2.2.0",
     "expand": "^0.4.3",

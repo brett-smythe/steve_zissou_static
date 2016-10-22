@@ -21,8 +21,8 @@ export default {
     }),
     replace({
       exclude: 'node_modules/**',
-      RUN_ENV: JSON.stringify(process.env.RUN_ENV || 'development'),
+      ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
     }),
-    (process.RUN_ENV === 'production' && uglify()),
+    (process.env.NODE_ENV === 'production' && uglify()),
   ],
 };

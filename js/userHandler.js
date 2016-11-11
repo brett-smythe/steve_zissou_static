@@ -8,7 +8,10 @@ class TwitterUserHandler {
     this.trackedUsersAdded = false;
     this.getTwitterUserListing();
     this.addUsersClickHandler();
-    this.checkBoxClassName = 'twitterUserSelection';
+    this.selectedTwitterUsers = [];
+    // Attempted to get this width from the element after it's created but returned 0
+    // so set here instead. This is also set within 
+    this.checkMarkImageWidth = 9;
   }
 
   getTwitterUserListing() {
@@ -34,55 +37,90 @@ class TwitterUserHandler {
     logger('Adding twitter users to document');
     const twitterUserList = document.getElementById('twitter-users');
     for (let i = 0; i < this.trackedUsers.length; i += 1) { // eslint-disable-line id-length
-      const checkboxList = document.createElement('li');
-      const checkboxLabel = document.createElement('label');
-      twitterUserList.appendChild(checkboxList);
-      const checkbox = this.createCheckBox(this.trackedUsers[i]);
-      checkboxLabel.appendChild(checkbox);
-      checkboxLabel.insertAdjacentHTML('beforeend', this.trackedUsers[i]);
-      checkboxList.appendChild(checkboxLabel);
+      const userSelectButton = this.createUserSelectionButton(this.trackedUsers[i]);
+      const userSelectList = document.createElement('li');
+      userSelectList.className = 'twitter-user-list';
+      twitterUserList.appendChild(userSelectList);
+      userSelectList.appendChild(userSelectButton);
+      this.addUserButtonClickHandler(userSelectButton);
     }
   }
 
+  createUserSelectionButton(username) {
+    const userSelectButton = document.createElement('button');
+    userSelectButton.className = 'twitter-user-button';
+    userSelectButton.innerHTML = username;
+    return userSelectButton;
+  }
+
+  addUserButtonClickHandler(userSelectButton) {
+    userSelectButton.addEventListener('click', event => { // eslint-disable-line no-unused-vars
+      const buttonListElement = userSelectButton.parentNode;
+      if (this.selectedTwitterUsers.includes(userSelectButton.innerHTML)) {
+        for (let i = 0; i < buttonListElement.childNodes.length; i += 1) { // eslint-disable-line id-length, max-len
+          if (buttonListElement.childNodes[i].className === 'user-checkmark') {
+            buttonListElement.childNodes[i].remove();
+            const newButtonWidth = userSelectButton.clientWidth + this.checkMarkImageWidth;
+            userSelectButton.setAttribute('style',`width:${newButtonWidth}px`);
+            userSelectButton.style.width = `${newButtonWidth}px`;
+            this.removeSelectedUser(userSelectButton.innerHTML);
+            this.moveButtonToBottomOfList(userSelectButton);
+            break;
+          }
+        }
+      } else {
+        const checkContainer = document.createElement('div');
+        checkContainer.className = 'user-checkmark-div';
+        const checkImagePath = 'static/images/checkmark.png';
+        const checkImage = document.createElement('img');
+        checkImage.className = 'user-checkmark';
+        checkImage.src = checkImagePath;
+        const newButtonWidth = userSelectButton.clientWidth - this.checkMarkImageWidth;
+        userSelectButton.setAttribute('style',`width:${newButtonWidth}px`);
+        userSelectButton.style.width = `${newButtonWidth}px`;
+        buttonListElement.appendChild(checkImage);
+        this.selectedTwitterUsers.push(userSelectButton.innerHTML);
+        this.moveButtonToTopOfList(userSelectButton);
+      }
+    }, false);
+  }
+
+  moveButtonToTopOfList(userSelectButton) {
+    const buttonListElement = userSelectButton.parentNode;
+    let previousListSibling = buttonListElement.previousElementSibling;
+    const topListLevel = buttonListElement.parentNode;
+    while (previousListSibling !== null) {
+      topListLevel.insertBefore(buttonListElement, previousListSibling);
+      previousListSibling = buttonListElement.previousElementSibling;
+    }
+  }
+
+  moveButtonToBottomOfList(userSelectButton) {
+    const buttonListElement = userSelectButton.parentNode;
+    const topListLevel = buttonListElement.parentNode;
+    topListLevel.insertBefore(buttonListElement, null);
+  }
+
+  removeSelectedUser(username) {
+    const usernameIndex = this.selectedTwitterUsers.indexOf(username);
+    if (usernameIndex === -1) {
+      return;
+    }
+    this.selectedTwitterUsers.splice(usernameIndex, 1);
+  }
+
   addUsersClickHandler() {
-    const userSelectDiv = document.getElementById('twitterSelectHeader');
-    const userDisplayDiv = document.getElementById('twitterUserSelect');
+    const userSelectDiv = document.getElementById('twitter-select-user-container');
+    const userDisplayDiv = document.getElementById('twitter-select-user');
     userSelectDiv.addEventListener('click', event => { // eslint-disable-line no-unused-vars
       userDisplayDiv.style.display = userDisplayDiv.style.display === 'none' ? '' : 'none';
       this.addTwitterUsersToDocument();
     }, false);
   }
 
-  removeStyleAttributeFromChildren(parentElement) {
-    if (parentElement.hasChildNodes()) {
-      parentElement.children.forEach(childNode => {
-        if (childNode.hasChildNodes()) {
-          this.removeStyleAttributeFromChildren(childNode);
-        }
-        childNode.removeAttribute('style');
-      });
-    }
-  }
-
-  createCheckBox(username) {
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.name = 'twitterCheckbox';
-    checkbox.className = this.checkBoxClassName;
-    checkbox.value = username;
-    return checkbox;
-  }
-
   getSelectedTwitterUsers() {
-    const selectedTwitterUsers = [];
-    const userNameCheckBoxes = document.getElementsByClassName(this.checkBoxClassName); 
-    // userNameCheckBoxes is an HTMLCollection and therefore forEach is not an option, therefore:
-    for (let i = 0; i < userNameCheckBoxes.length; i += 1) { // eslint-disable-line id-length
-      if (userNameCheckBoxes[i].checked) {
-        selectedTwitterUsers.push(userNameCheckBoxes[i].value);
-      }
-    }
-    return selectedTwitterUsers;
+    logger(this.selectedTwitterUsers);
+    return this.selectedTwitterUsers;
   }
 }
 

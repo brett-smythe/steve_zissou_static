@@ -8,9 +8,28 @@ class TwitterDateHandler {
     this.addDateSelectClickHandler();
   }
 
+  addMouseOverHandler() {
+    // dead code
+    const dateSelectDiv = document.getElementById('twitter-select-date-container');
+    const datePickerDiv = document.getElementById('twitter-select-date');
+    dateSelectDiv.addEventListener('mouseenter', event => { //eslint-disable-line no-unused-vars
+      datePickerDiv.style.display = datePickerDiv.style.display === 'none' ? '' : 'none';
+    }, false);
+  }
+
+  addMouseLeaveHandler() {
+    // dead code
+    const dateSelectDiv = document.getElementById('twitter-select-date-container');
+    const datePickerDiv = document.getElementById('twitter-select-date');
+    dateSelectDiv.addEventListener('mouseleave', event => { //eslint-disable-line no-unused-vars
+      datePickerDiv.style.display = 'none';
+    }, false);
+  }
+
   addDateSelectClickHandler() {
-    const dateSelectDiv = document.getElementById('dateSelectHeader');
-    const datePickerDiv = document.getElementById('dateRangeSelect');
+    // Dead code now
+    const dateSelectDiv = document.getElementById('twitter-select-date-container');
+    const datePickerDiv = document.getElementById('twitter-select-date');
     dateSelectDiv.addEventListener('click', event => { //eslint-disable-line no-unused-vars
       datePickerDiv.style.display = datePickerDiv.style.display === 'none' ? '' : 'none';
     }, false);

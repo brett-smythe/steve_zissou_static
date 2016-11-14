@@ -5,7 +5,6 @@ import { line, } from 'd3-shape';
 import { select, } from 'd3-selection';
 import { utcParse, } from 'd3-time-format';
 import { extent, } from 'd3-array';
-import logger from './logger';
 
 class UserSearchTermGraph {
 
@@ -22,13 +21,15 @@ class UserSearchTermGraph {
     this.line = line()
       .x(datum => this.xScale(this.formatDate(datum[0])))
       .y(datum => this.yScale(datum[1]));
-    this.svg = select('#testGraph')
+    this.svg = select('#twitter-search-graph')
       .append('svg')
         .attr('width', this.width + this.margins.left + this.margins.right)
         .attr('height', this.height + this.margins.top + this.margins.bottom)
+        .attr('id', 'graphed-data')
       .append('g')
         .attr('transform', `translate(${this.margins.left}, ${this.margins.top})`);
     this.scaleColors = scaleOrdinal(schemeCategory20);
+    this.searchterm = '';
   }
 
   addUserNameForKey(username) {
@@ -41,7 +42,8 @@ class UserSearchTermGraph {
     return utcParse('%Y-%m-%d')(dateString);
   }
 
-  graphSearchData(dateRange, searchTermCounts, parsedSearchData) {
+  graphSearchData(searchTerm, dateRange, searchTermCounts, parsedSearchData) {
+    this.searchTerm = searchTerm;
     const convertedDateRanges = dateRange.map(this.formatDate);
     this.xScale.domain(extent(convertedDateRanges));
     this.yScale.domain(extent(searchTermCounts));
@@ -51,13 +53,13 @@ class UserSearchTermGraph {
         .call(this.xAxis);
     this.svg.append('g')
         .attr('class', 'y axis')
-        .call(this.yAxis)
-      .append('text')
+        .call(this.yAxis);
+    this.svg.append('text')
         .attr('transform', 'rotate(-90)')
         .attr('y', 6)
-        .attr('dy', '.71em')
+        .attr('dy', '.75em')
         .style('text-anchor', 'end')
-        .text('Daily Usages');
+        .text(`"${this.searchTerm}" mentions`);
     Object.keys(parsedSearchData).forEach(twitterUsername => {
       this.addUserNameForKey(twitterUsername);
       Object.keys(parsedSearchData[twitterUsername]).forEach(searchTerm => {
@@ -73,13 +75,13 @@ class UserSearchTermGraph {
   }
 
   addGraphKey() {
-    const parentDiv = document.getElementById('graphKeyContainer');
+    const parentDiv = document.getElementById('graph-key-container');
     const graphDefList = document.createElement('dl');
-    graphDefList.className = 'graphKey';
+    graphDefList.id = 'graph-key';
     Object.keys(this.usernameColors).forEach(username => {
       const defElement = document.createElement('dt');
       const keyColorDiv = document.createElement('div');
-      keyColorDiv.className = 'keyColorBox';
+      keyColorDiv.className = 'key-color-box';
       // This failed to style by setting .background or .backgroundColor, so here we are:
       keyColorDiv.style = `background: ${this.usernameColors[username]}`;
       const descElement = document.createElement('dd');

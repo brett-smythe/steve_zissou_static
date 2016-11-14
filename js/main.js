@@ -4,6 +4,7 @@ import TwitterDateHandler from './dateHandler';
 import TwitterSearchHandler from './searchHandler';
 import UserSearchTermGraph from './searchGrapher';
 import logger from './logger';
+import { searchSelectEventString, } from './graphingEvents';
 
 class TwitterUserDateTermSearch {
 
@@ -19,22 +20,87 @@ class TwitterUserDateTermSearch {
     this.searchDateRange = [];
     this.searchInProgress = false;
     this.parsedResponseData = {};
-    // this.searchTermCounts = [0,];
     this.searchTermCounts = [];
     this.addSearchButtonClickHandler();
+    this.addSearchButtonSearchUpdateEventHandler();
+    this.addSearchButtonMouseEnterHandler();
+    this.addSearchButtonMouseLeaveHandler();
+  }
+
+  addSearchButtonSearchUpdateEventHandler() {
+    const searchButton = document.getElementById('graph-search-button');
+    const cls = this;
+    const updateSearchButtonState = function() {
+      logger('Update search button state');
+      cls.updateSearchValues();
+      const searchButton = document.getElementById('graph-search-button');
+      if (cls.searchValuesValid()) {
+        logger('Changing button styles');
+        searchButton.setAttribute(
+          'style',
+          'background-color: #A5BFCB;color: black;box-shadow: 2px 2px 1px;'
+        );
+      } else {
+        logger('Changing button styles, invalid');
+        searchButton.setAttribute(
+          'style',
+          'background-color: #D6E3E9;color: 9D9D9D;box-shadow: 0px 0px 0px;'
+        );
+      }
+    };
+    searchButton.addEventListener(searchSelectEventString, updateSearchButtonState, false);
+  }
+
+  addSearchButtonMouseEnterHandler() {
+    const searchButton = document.getElementById('graph-search-button');
+    const cls = this;
+    const mouseEnterChangeButton = function() {
+      if (cls.searchValuesValid()) {
+        const searchButton = document.getElementById('graph-search-button');
+        searchButton.setAttribute(
+          'style',
+          'background-color: #4B788B;color: black;box-shadow: 2px 2px 1px;'
+        );
+      }
+    };
+    searchButton.addEventListener('mouseenter', mouseEnterChangeButton, false);
+  }
+
+  addSearchButtonMouseLeaveHandler() {
+    const searchButton = document.getElementById('graph-search-button');
+    const cls = this;
+    const mouseLeaveChangeButton = function() {
+      const searchButton = document.getElementById('graph-search-button');
+      if (cls.searchValuesValid()) {
+        searchButton.setAttribute(
+          'style',
+          'background-color: #A5BFCB;color: black;box-shadow: 2px 2px 1px;'
+        );
+      } else {
+        searchButton.setAttribute(
+          'style',
+          'background-color: #D6E3E9;color: 9D9D9D;box-shadow: 0px 0px 0px;'
+        );
+      }
+    };
+    searchButton.addEventListener('mouseleave', mouseLeaveChangeButton, false);
+  }
+
+  updateSearchValues() {
+    this.selectedTwitterUsers = this.twitterUserHandler.getSelectedTwitterUsers();
+    this.selectedStartDate = this.twitterDateHandler.getStartDate();
+    this.selectedEndDate = this.twitterDateHandler.getEndDate();
+    this.selectedSearchTerm = this.twitterSearchHandler.getSearchTerm();
   }
 
   addSearchButtonClickHandler() {
-    const searchButton = document.getElementById('searchButton');
+    const searchButton = document.getElementById('graph-search-button');
     searchButton.addEventListener('click', () => {
       if (this.searchInProgress) {
         logger('Search in progress, ignoring button click for new search');
         return;
       }
-      this.selectedTwitterUsers = this.twitterUserHandler.getSelectedTwitterUsers();
-      this.selectedStartDate = this.twitterDateHandler.getStartDate();
-      this.selectedEndDate = this.twitterDateHandler.getEndDate();
-      this.selectedSearchTerm = this.twitterSearchHandler.getSearchTerm();
+      this.updateSearchValues();
       this.startSearch();
     });
   }
@@ -43,10 +109,10 @@ class TwitterUserDateTermSearch {
     if (this.selectedTwitterUsers.length <= 0) {
       logger('No twitter users were selected for query');
       return false;
-    } else if (this.selectedStartDate === '') {
+    } else if (this.selectedStartDate === '' || this.selectedStartDate === 'Start Date') {
       logger('No start date value was selected');
       return false;
-    } else if (this.selectedEndDate === '') {
+    } else if (this.selectedEndDate === '' || this.selectedEndDate === 'End Date') {
       logger('No end date value was selected');
       return false;
     } else if (!moment(this.selectedStartDate).isValid()) {
@@ -128,6 +194,7 @@ class TwitterUserDateTermSearch {
       this.searchInProgess = false;
       this.createDateSearchRange();
       this.searchTermGraph.graphSearchData(
+          this.selectedSearchTerm,
           this.searchDateRange,
           this.searchTermCounts,
           this.parsedResponseData

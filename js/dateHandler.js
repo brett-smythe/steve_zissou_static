@@ -1,33 +1,26 @@
 import Pikaday from 'pikaday';
+import { searchSelectEvent, } from './graphingEvents';
 
 class TwitterDateHandler {
 
   constructor() {
-    this.startDatePicker = new Pikaday({ field: document.getElementById('startDate'), });
-    this.endDatePicker = new Pikaday({ field: document.getElementById('endDate'), });
+    this.startDatePicker = new Pikaday({
+      field: document.getElementById('start-date'),
+      onSelect: this.fireUpdatedDateSelectEvent,
+    });
+    this.endDatePicker = new Pikaday({
+      field: document.getElementById('end-date'),
+      onSelect: this.fireUpdatedDateSelectEvent,
+    });
     this.addDateSelectClickHandler();
   }
 
-  addMouseOverHandler() {
-    // dead code
-    const dateSelectDiv = document.getElementById('twitter-select-date-container');
-    const datePickerDiv = document.getElementById('twitter-select-date');
-    dateSelectDiv.addEventListener('mouseenter', event => { //eslint-disable-line no-unused-vars
-      datePickerDiv.style.display = datePickerDiv.style.display === 'none' ? '' : 'none';
-    }, false);
-  }
-
-  addMouseLeaveHandler() {
-    // dead code
-    const dateSelectDiv = document.getElementById('twitter-select-date-container');
-    const datePickerDiv = document.getElementById('twitter-select-date');
-    dateSelectDiv.addEventListener('mouseleave', event => { //eslint-disable-line no-unused-vars
-      datePickerDiv.style.display = 'none';
-    }, false);
+  fireUpdatedDateSelectEvent() {
+    const searchButton = document.getElementById('graph-search-button');
+    searchButton.dispatchEvent(searchSelectEvent);
   }
 
   addDateSelectClickHandler() {
-    // Dead code now
     const dateSelectDiv = document.getElementById('twitter-select-date-container');
     const datePickerDiv = document.getElementById('twitter-select-date');
     dateSelectDiv.addEventListener('click', event => { //eslint-disable-line no-unused-vars
@@ -36,12 +29,12 @@ class TwitterDateHandler {
   }
 
   getStartDate() {
-    const startDate = document.getElementById('startDate').value;
+    const startDate = document.getElementById('start-date').value;
     return startDate;
   }
 
   getEndDate() {
-    const endDate = document.getElementById('endDate').value;
+    const endDate = document.getElementById('end-date').value;
     return endDate;
   }
 

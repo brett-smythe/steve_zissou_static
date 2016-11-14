@@ -1,7 +1,20 @@
+import { searchSelectEvent, } from './graphingEvents';
+
 class TwitterSearchHandler {
 
   constructor() {
     this.addSearchSelectClickHandler();
+    this.addSearchFieldUpdateHandler();
+  }
+
+  addSearchFieldUpdateHandler() {
+    const searchBox = document.getElementById('search-term');
+    searchBox.onkeyup = this.fireUpdatedDateSelectEvent;
+  }
+
+  fireUpdatedDateSelectEvent() {
+    const searchButton = document.getElementById('graph-search-button');
+    searchButton.dispatchEvent(searchSelectEvent);
   }
 
   addSearchSelectClickHandler() {
@@ -13,7 +26,7 @@ class TwitterSearchHandler {
   }
 
   getSearchTerm() {
-    const searchBox = document.getElementById('searchTerm');
+    const searchBox = document.getElementById('search-term');
     return searchBox.value;
   }
 }

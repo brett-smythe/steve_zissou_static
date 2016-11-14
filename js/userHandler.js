@@ -1,4 +1,5 @@
 import logger from './logger';
+import { searchSelectEvent, } from './graphingEvents';
 
 class TwitterUserHandler {
 
@@ -82,6 +83,8 @@ class TwitterUserHandler {
         this.selectedTwitterUsers.push(userSelectButton.innerHTML);
         this.moveButtonToTopOfList(userSelectButton);
       }
+      const searchButton = document.getElementById('graph-search-button');
+      searchButton.dispatchEvent(searchSelectEvent);
     }, false);
   }
 
@@ -119,7 +122,6 @@ class TwitterUserHandler {
   }
 
   getSelectedTwitterUsers() {
-    logger(this.selectedTwitterUsers);
     return this.selectedTwitterUsers;
   }
 }

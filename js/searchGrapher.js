@@ -5,6 +5,7 @@ import { line, } from 'd3-shape';
 import { select, } from 'd3-selection';
 import { utcParse, } from 'd3-time-format';
 import { extent, } from 'd3-array';
+import logger from './logger';
 
 class UserSearchTermGraph {
 
@@ -19,8 +20,20 @@ class UserSearchTermGraph {
     this.xAxis = axisBottom(this.xScale);
     this.yAxis = axisLeft(this.yScale);
     this.line = line()
+      /*
       .x(datum => this.xScale(this.formatDate(datum[0])))
+      */
+      /*
       .y(datum => this.yScale(datum[1]));
+      */
+      .x(datum => {
+        this.xScale(this.formatDate(datum[0]));
+        logger(`X line scale: ${datum[0]}`);
+      })
+      .y(datum => {
+        this.yScale(datum[1]);
+        logger(`Y line scale: ${datum[1]}`);
+      });
     this.svg = select('#twitter-search-graph')
       .append('svg')
         .attr('width', this.width + this.margins.left + this.margins.right)
@@ -64,11 +77,40 @@ class UserSearchTermGraph {
       this.addUserNameForKey(twitterUsername);
       Object.keys(parsedSearchData[twitterUsername]).forEach(searchTerm => {
         const dateCounts = parsedSearchData[twitterUsername][searchTerm];
+        logger('Drawing lines:');
+        logger(`twitterUsername: ${twitterUsername}`);
+        logger('dateCounts:');
+        for (let idx = 0; idx < dateCounts.length; idx += 1) {
+          logger(dateCounts[idx]);
+        }
+        /*
+        this.svg.selectAll('.line').filter(`${twitterUsername}-line`)
+        */
+        const userLine = this.svg.selectAll('.line')
+          .data(dateCounts)
+          .attr('class', 'line');
+        userLine.enter()
+          .append('path')
+          .attr('class', 'line')
+          .attr('d', this.line)
+          .attr('stroke', this.usernameColors[twitterUsername]);
+        /*
+        this.svg.selectAll('.line')
+          .data(dateCounts)
+          .attr('class', 'line')
+          .enter()
+            .append('path')
+            .attr('class', 'line')
+            .attr('d', line)
+            .attr('stroke', this.usernameColors[twitterUsername]);
+        */
+        /*
         this.svg.append('path')
           .datum(dateCounts)
           .attr('class', 'line')
           .attr('d', this.line)
           .attr('stroke', this.usernameColors[twitterUsername]);
+          */
       });
     });
     this.addGraphKey();

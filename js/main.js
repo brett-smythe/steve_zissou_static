@@ -25,6 +25,8 @@ class TwitterUserDateTermSearch {
     this.addSearchButtonSearchUpdateEventHandler();
     this.addSearchButtonMouseEnterHandler();
     this.addSearchButtonMouseLeaveHandler();
+    this.userIdx = 0;
+    this.graphDateRange = [];
   }
 
   addSearchButtonSearchUpdateEventHandler() {
@@ -101,6 +103,10 @@ class TwitterUserDateTermSearch {
         return;
       }
       this.updateSearchValues();
+      this.parsedResponseData = {};
+      this.searchTermCounts = [];
+      this.searchDateRange = [];
+      this.searchTermGraph.clearGraph();
       this.startSearch();
     });
   }
@@ -135,6 +141,7 @@ class TwitterUserDateTermSearch {
     let newMoment = moment(this.selectedStartDate); // eslint-disable-line prefer-const
     while (newMoment.isSameOrBefore(this.selectedEndDate)) {
       this.searchDateRange.push(newMoment.format('YYYY-MM-DD'));
+      this.graphDateRange.push(newMoment.format('YYYY-MM-DD'));
       newMoment.add(1, 'd');
     }
   }
@@ -171,10 +178,26 @@ class TwitterUserDateTermSearch {
     this.parsedResponseData[twitterUserName][searchTerm].push([searchDate, searchTermCount,]);
   }
 
+  updateGraph() {
+    this.searchTermGraph.graphSearchData(
+        this.selectedSearchTerm,
+        this.graphDateRange,
+        this.searchTermCounts,
+        this.parsedResponseData
+    );
+  }
+
   makeSearchRequest() {
+    /*
     if (this.selectedTwitterUsers.length !== 0 || this.searchDateRange.length !== 0) {
+    */
+    const userIdxNotAtEnd = this.selectedTwitterUsers.length > this.userIdx;
+    logger(`userIdxNotAtEnd: ${userIdxNotAtEnd}`);
+    if (userIdxNotAtEnd || this.searchDateRange.length !== 0) {
       if (this.searchDateRange.length === 0) {
-        this.currentTwitterSearchUser = this.selectedTwitterUsers.shift();
+        this.currentTwitterSearchUser = this.selectedTwitterUsers[this.userIdx];
+        logger(`current twitter search user: ${this.currentTwitterSearchUser}`);
+        this.userIdx += 1;
         this.createDateSearchRange();
       }
       const searchParameters = {
@@ -188,14 +211,16 @@ class TwitterUserDateTermSearch {
       searchDataRequest.onload = () => {
         this.parseResponseData(searchDataRequest.responseText);
         this.makeSearchRequest();
+        this.updateGraph();
       };
       searchDataRequest.send(JSON.stringify(searchParameters));
     } else {
-      this.searchInProgess = false;
+      this.userIdx = 0;
+      this.searchInProgress = false;
       this.createDateSearchRange();
       this.searchTermGraph.graphSearchData(
           this.selectedSearchTerm,
-          this.searchDateRange,
+          this.graphDateRange,
           this.searchTermCounts,
           this.parsedResponseData
       );

@@ -5,6 +5,7 @@ import { line, } from 'd3-shape';
 import { select, } from 'd3-selection';
 import { utcParse, } from 'd3-time-format';
 import { extent, } from 'd3-array';
+import { transition, } from 'd3-transition'; // eslint-disable-line no-unused-vars
 import logger from './logger';
 
 class UserSearchTermGraph {
@@ -20,20 +21,8 @@ class UserSearchTermGraph {
     this.xAxis = axisBottom(this.xScale);
     this.yAxis = axisLeft(this.yScale);
     this.line = line()
-      /*
       .x(datum => this.xScale(this.formatDate(datum[0])))
-      */
-      /*
       .y(datum => this.yScale(datum[1]));
-      */
-      .x(datum => {
-        this.xScale(this.formatDate(datum[0]));
-        logger(`X line scale: ${datum[0]}`);
-      })
-      .y(datum => {
-        this.yScale(datum[1]);
-        logger(`Y line scale: ${datum[1]}`);
-      });
     this.svg = select('#twitter-search-graph')
       .append('svg')
         .attr('width', this.width + this.margins.left + this.margins.right)
@@ -43,10 +32,15 @@ class UserSearchTermGraph {
         .attr('transform', `translate(${this.margins.left}, ${this.margins.top})`);
     this.scaleColors = scaleOrdinal(schemeCategory20);
     this.searchterm = '';
+    this.userNamesInKey = [];
   }
 
   addUserNameForKey(username) {
     //FIXME: Unexpected behavior after 20 twitter users are selected for graphing
+    logger(`Adding: ${username} to key`);
+    if (this.stringInArray(username, Object.keys(this.usernameColors))) {
+      return;
+    }
     const colorIndex = Object.keys(this.usernameColors).length + 1;
     this.usernameColors[username] = this.scaleColors(colorIndex);
   }
@@ -55,83 +49,118 @@ class UserSearchTermGraph {
     return utcParse('%Y-%m-%d')(dateString);
   }
 
+  clearKey() {
+    this.usernameColors = {};
+    const keyParent = document.getElementById('graph-key-container');
+    while (keyParent.firstChild) {
+      keyParent.removeChild(keyParent.firstChild);
+    }
+    this.userNamesInKey = [];
+  }
+
+  clearGraph() {
+    logger('Clearing graph');
+    for (let idx = 0; idx < this.userNamesInKey.length; idx += 1) {
+      const userNameLine = document.getElementById(`${this.userNamesInKey[idx]}-line`);
+      if (userNameLine !== null) {
+        logger(`Removing line: ${userNameLine}`);
+        userNameLine.parentNode.removeChild(userNameLine);
+      }
+    }
+    this.clearKey();
+  }
+
   graphSearchData(searchTerm, dateRange, searchTermCounts, parsedSearchData) {
     this.searchTerm = searchTerm;
     const convertedDateRanges = dateRange.map(this.formatDate);
     this.xScale.domain(extent(convertedDateRanges));
     this.yScale.domain(extent(searchTermCounts));
-    this.svg.append('g')
-        .attr('class', 'x axis')
-        .attr('transform', `translate(0, ${this.height})`)
+    if (document.getElementsByClassName('x axis').length < 1) {
+      this.svg.append('g')
+          .attr('class', 'x axis')
+          .attr('transform', `translate(0, ${this.height})`)
+          .call(this.xAxis);
+    } else {
+      this.svg.selectAll('.x.axis')
+        .transition()
+        .duration(500)
         .call(this.xAxis);
-    this.svg.append('g')
-        .attr('class', 'y axis')
+    }
+    if (document.getElementsByClassName('y axis').length < 1) {
+      this.svg.append('g')
+          .attr('class', 'y axis')
+          .call(this.yAxis);
+    } else {
+      this.svg.selectAll('.y.axis')
+        .transition()
+        .duration(150)
         .call(this.yAxis);
-    this.svg.append('text')
-        .attr('transform', 'rotate(-90)')
-        .attr('y', 6)
-        .attr('dy', '.75em')
-        .style('text-anchor', 'end')
-        .text(`"${this.searchTerm}" mentions`);
+    }
+    if (document.getElementById('y-label') === null) {
+      this.svg.append('text')
+          .attr('id', 'y-label')
+          .attr('transform', 'rotate(-90)')
+          .attr('y', 6)
+          .attr('dy', '.75em')
+          .style('text-anchor', 'end')
+          .text(`"${this.searchTerm}" mentions`);
+    }
     Object.keys(parsedSearchData).forEach(twitterUsername => {
       this.addUserNameForKey(twitterUsername);
       Object.keys(parsedSearchData[twitterUsername]).forEach(searchTerm => {
         const dateCounts = parsedSearchData[twitterUsername][searchTerm];
-        logger('Drawing lines:');
-        logger(`twitterUsername: ${twitterUsername}`);
-        logger('dateCounts:');
-        for (let idx = 0; idx < dateCounts.length; idx += 1) {
-          logger(dateCounts[idx]);
-        }
-        /*
-        this.svg.selectAll('.line').filter(`${twitterUsername}-line`)
-        */
-        const userLine = this.svg.selectAll('.line')
-          .data(dateCounts)
-          .attr('class', 'line');
+        const userLine = this.svg.selectAll(`#${twitterUsername}-line`)
+          .data([dateCounts,])
+          .attr('class', 'line')
+          .attr('id', `${twitterUsername}-line`);
+        userLine.transition()
+          .duration(500)
+          .attr('d', this.line)
+          .attr('stroke', this.usernameColors[twitterUsername]);
         userLine.enter()
           .append('path')
           .attr('class', 'line')
+          .attr('id', `${twitterUsername}-line`)
           .attr('d', this.line)
           .attr('stroke', this.usernameColors[twitterUsername]);
-        /*
-        this.svg.selectAll('.line')
-          .data(dateCounts)
-          .attr('class', 'line')
-          .enter()
-            .append('path')
-            .attr('class', 'line')
-            .attr('d', line)
-            .attr('stroke', this.usernameColors[twitterUsername]);
-        */
-        /*
-        this.svg.append('path')
-          .datum(dateCounts)
-          .attr('class', 'line')
-          .attr('d', this.line)
-          .attr('stroke', this.usernameColors[twitterUsername]);
-          */
+        userLine.exit()
+          .remove();
       });
     });
     this.addGraphKey();
   }
 
+  stringInArray(stringValue, arrayToCheck) {
+    let stringInArray = false;
+    for (let idx = 0; idx < arrayToCheck.length; idx += 1) {
+      if (stringValue === arrayToCheck[idx]) {
+        stringInArray = true;
+      }
+    }
+    return stringInArray;
+  }
+
   addGraphKey() {
     const parentDiv = document.getElementById('graph-key-container');
     const graphDefList = document.createElement('dl');
-    graphDefList.id = 'graph-key';
+    graphDefList.className = 'graph-key';
     Object.keys(this.usernameColors).forEach(username => {
-      const defElement = document.createElement('dt');
-      const keyColorDiv = document.createElement('div');
-      keyColorDiv.className = 'key-color-box';
-      // This failed to style by setting .background or .backgroundColor, so here we are:
-      keyColorDiv.style = `background: ${this.usernameColors[username]}`;
-      const descElement = document.createElement('dd');
-      const descElementText = document.createTextNode(` - ${username} `);
-      descElement.appendChild(descElementText);
-      defElement.appendChild(keyColorDiv);
-      defElement.appendChild(descElement);
-      graphDefList.appendChild(defElement);
+      if (!this.stringInArray(username, this.userNamesInKey)) {
+        const defElement = document.createElement('dt');
+        const keyColorDiv = document.createElement('div');
+        // This failed to style by setting .background or .backgroundColor, so here we are:
+        keyColorDiv.style = `background: ${this.usernameColors[username]}`;
+        const descElement = document.createElement('dd');
+        defElement.className = 'graph-key-def';
+        descElement.className = 'graph-key-desc';
+        keyColorDiv.className = 'key-color-box';
+        const descElementText = document.createTextNode(` - ${username} `);
+        descElement.appendChild(descElementText);
+        defElement.appendChild(keyColorDiv);
+        defElement.appendChild(descElement);
+        graphDefList.appendChild(defElement);
+        this.userNamesInKey.push(username);
+      }
     });
     parentDiv.appendChild(graphDefList);
   }

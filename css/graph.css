@@ -9,24 +9,30 @@
   display: none;
 }
 
-
 .line {
   fill: none;
   /*stroke: steelblue;*/
   stroke-width: 1.5px;
 }
 
-.graphKeyContainer {
-    width: 800;
-    border: 1px solid #000;
+#graph-key-container {
+    width: 100%;
     padding: 5px 15px;
+    display: inline-block;
+    height: 30px;
 }
 
 dt, dd {
     display: inline;
 }
-.keyColorBox {
+
+.key-color-box {
     display: inline-block;
     width: 10px;
     height: 10px;
+    margin-left: 10px;
+}
+
+.graph-key {
+    display: inline-block;
 }

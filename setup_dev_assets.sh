@@ -7,3 +7,6 @@ cp build/js/main.min.js ../static/js/
 
 # Setup css
 cp -r css/ ../static/
+
+# Setup images
+cp -r images/ ../static/
